@@ -71,8 +71,8 @@ func main() {
 	flag.IntVar(&threads, "t", 1, "Indicate the number of threads you want to use (shorthand)")
 
 	var output string
-	flag.StringVar(&output, "output", "", "Indicate the name of the output file")
-	flag.StringVar(&output, "o", "", "Specify the file containing URLs to fetch (shorthand)")
+	flag.StringVar(&output, "output", "active_subdomains", "Indicate the name of the output file")
+	flag.StringVar(&output, "o", "active_subdomains", "Specify the file containing URLs to fetch (shorthand)")
 
 	flag.Parse()
 
@@ -115,9 +115,9 @@ func main() {
 		close(results)
 	}()
 
-	if output == "" {
-		output = "active_subdomains.txt"
-	}
+	//if output == "" {
+	//	output = "active_subdomains.txt"
+	//}
 
 	// Create a file to write active subdomains
 	outputFile, err := os.Create(output)
