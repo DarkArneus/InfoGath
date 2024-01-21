@@ -20,7 +20,8 @@ func init() {
 			"",
 			"Options:",
 			"  -f, --file <txtfile>     Specify the URLs to fetch",
-			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!\n",
+			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
+			"  -o, --output <file>		Indicate the name of the output file\n",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}
@@ -69,6 +70,10 @@ func main() {
 	flag.IntVar(&threads, "threads", 1, "Indicate the number of threads you want to use")
 	flag.IntVar(&threads, "t", 1, "Indicate the number of threads you want to use (shorthand)")
 
+	var output string
+	flag.StringVar(&output, "output", "", "Indicate the name of the output file")
+	flag.StringVar(&output, "o", "", "Specify the file containing URLs to fetch (shorthand)")
+
 	flag.Parse()
 
 	if domainsFile == "" {
@@ -78,13 +83,19 @@ func main() {
 
 	domains := parseTXT(domainsFile)
 	results := make(chan string, len(domains))
-	var domainsPerThread = len(domains) / threads // how many iterations x goroutine must be made
 
 	if len(domains) < threads {
 		fmt.Println("Please use a lower number of threads ")
 		flag.Usage()
 		return
 	}
+
+	if threads == 1 {
+		fmt.Println("Using default number of threads: len(domains) / 2")
+		threads = len(domains) / 2
+	}
+
+	var domainsPerThread = len(domains) / threads // how many iterations x goroutine must be made
 
 	// Inicia workers
 	for i := 0; i < threads; i++ {
@@ -104,8 +115,12 @@ func main() {
 		close(results)
 	}()
 
+	if output == "" {
+		output = "active_subdomains.txt"
+	}
+
 	// Create a file to write active subdomains
-	outputFile, err := os.Create("active_subdomains.txt")
+	outputFile, err := os.Create(output)
 	defer outputFile.Close()
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
