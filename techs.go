@@ -4,11 +4,10 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
 
 func init() {
@@ -18,7 +17,7 @@ func init() {
 			"",
 			"Options:",
 			"  -f, --file <txtfile>     Specify the URLs to fetch",
-			"  -t, --threads <int>      Indicate the number of threads you want to use\n",
+			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!\n",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}
@@ -41,20 +40,18 @@ func parseTXT(domains string) []string {
 	return array_domain
 }
 
-func statusCode(url string) {
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-		return
+func statusCode(domains []string, index int, num_it int, results chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for i := index; i < index+num_it; i++ {
+		resp, err := http.Get("http://" + domains[i])
+		if err != nil {
+			results <- fmt.Sprintf("%s: Error - %s", domains[i], err.Error())
+		} else {
+			results <- fmt.Sprintf("%s: Status - %s", domains[i], resp.Status)
+			resp.Body.Close()
+		}
 	}
-	defer resp.Body.Close()
 
-	fileContent := fmt.Sprintf("%s: [%d]\n", url, resp.StatusCode)
-	err = ioutil.WriteFile("output.txt", []byte(fileContent), 0644)
-	if err != nil {
-		log.Fatal("Error al escribir en el archivo:", err)
-	}
 }
 
 func main() {
@@ -73,7 +70,25 @@ func main() {
 		return
 	}
 	domains := parseTXT(domainsFile)
-	for _, domain := range domains {
-		statusCode(domain)
+	if len(domains) < threads {
+		fmt.Println("Please use a lower number of threads ")
+		flag.Usage()
+		return
 	}
+	var iterate = len(domains) / threads // how many iterations x goroutine must be made
+
+	var wg sync.WaitGroup
+	results := make(chan string, len(domains))
+
+	// Inicia workers
+	for i := 0; i < iterate; i++ {
+		wg.Add(1)
+		var total_iterate = i + iterate
+		go statusCode(domains, total_iterate, iterate, results, &wg)
+	}
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
 }
