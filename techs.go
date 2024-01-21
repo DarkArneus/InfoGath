@@ -59,6 +59,8 @@ func statusCode(domains []string, results chan<- string, wg *sync.WaitGroup) {
 
 func main() {
 	startTime := time.Now()
+	var wg sync.WaitGroup
+
 	var domainsFile string
 	flag.StringVar(&domainsFile, "file", "", "Specify the file containing URLs to fetch")
 	flag.StringVar(&domainsFile, "f", "", "Specify the file containing URLs to fetch (shorthand)")
@@ -73,16 +75,16 @@ func main() {
 		flag.Usage()
 		return
 	}
+
 	domains := parseTXT(domainsFile)
+	results := make(chan string, len(domains))
+	var domainsPerThread = len(domains) / threads // how many iterations x goroutine must be made
+
 	if len(domains) < threads {
 		fmt.Println("Please use a lower number of threads ")
 		flag.Usage()
 		return
 	}
-	var domainsPerThread = len(domains) / threads // how many iterations x goroutine must be made
-
-	var wg sync.WaitGroup
-	results := make(chan string, len(domains))
 
 	// Inicia workers
 	for i := 0; i < threads; i++ {
@@ -101,13 +103,14 @@ func main() {
 		wg.Wait()
 		close(results)
 	}()
+
 	// Create a file to write active subdomains
 	outputFile, err := os.Create("active_subdomains.txt")
+	defer outputFile.Close()
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
 		return
 	}
-	defer outputFile.Close()
 
 	// Write active subdomains to the file
 	for result := range results {
