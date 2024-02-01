@@ -17,5 +17,4 @@ func statusCode(domains []string, results chan<- string, wg *sync.WaitGroup) {
 			resp.Body.Close()
 		}
 	}
-
 }
