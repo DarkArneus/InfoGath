@@ -16,15 +16,15 @@ func detectInput(domains []string, results chan<- string, wg *sync.WaitGroup) {
 		c.OnHTML("input", func(e *colly.HTMLElement) {
 			inputType := e.Attr("type")
 			inputName := e.Attr("name")
-			results <- fmt.Sprintf("Dominio: %s, Tipo de entrada: %s, Nombre: %s\n", domain, inputType, inputName)
+			results <- fmt.Sprintf("Dominio: %s, Tipo de entrada: %s, Nombre: %s", domain, inputType, inputName)
 		})
 		// Define lo que se debe hacer cuando se encuentran elementos form en la página
 		c.OnHTML("form", func(e *colly.HTMLElement) {
 			formAction := e.Attr("action")
-			results <- fmt.Sprintf("Dominio: %s, Formulario encontrado con acción: %s\n", domain, formAction)
+			results <- fmt.Sprintf("Dominio: %s, Formulario encontrado con acción: %s", domain, formAction)
 		})
 		// Visita el dominio actual
-		err := c.Visit(domain)
+		err := c.Visit("http://" + domain)
 		if err != nil {
 			fmt.Printf("Error al visitar el dominio %s: %v\n", domain, err)
 		}
