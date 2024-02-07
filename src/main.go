@@ -20,7 +20,7 @@ func init() {
 			"  -f, --file <file>     Specify the URLs to fetch",
 			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
 			"  -o, --output <file>	   Indicate the name of the output file",
-			"  -c, --crawl	<file>	   Indicate to detect inputs as forms or input labels\n",
+			"  -c, --crawl	<file>	   Indicate to detect inputs as forms or labels\n",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}
@@ -43,8 +43,8 @@ func main() {
 	flag.StringVar(&output, "o", "active_subdomains", "Specify the file containing URLs to fetch (shorthand)")
 
 	var crawl string
-	flag.StringVar(&crawl, "crawl", "", "Indicate whether to detect inputs as forms or input labels")
-	flag.StringVar(&crawl, "c", "", "Indicate whether to detect inputs as forms or input labels (shorthand)")
+	flag.StringVar(&crawl, "crawl", "active_subdomains", "Indicate whether to detect inputs as forms or input labels")
+	flag.StringVar(&crawl, "c", "active_subdomains", "Indicate whether to detect inputs as forms or input labels (shorthand)")
 
 	flag.Parse()
 
@@ -54,15 +54,9 @@ func main() {
 	}
 
 	domains := parseTXT(domainsFile)
-	crawl_domains := parseTXT(crawl)
-	results := make(chan string, len(domains))
-	crawl_results := make(chan string, len(crawl_domains))
 
-	if len(domains) < threads {
-		fmt.Println("Please use a lower number of threads ")
-		flag.Usage()
-		return
-	}
+	results := make(chan string, len(domains))
+
 
 	if threads == 1 {
 		fmt.Println("Using default number of threads: len(domains) / 2")
@@ -110,9 +104,11 @@ func main() {
 	}
 
 	outputCrawlFile, err := os.Create("crawl.txt")
-	var crawlsPerThread = len(crawl_domains) / threads
 	defer outputCrawlFile.Close()
 	if crawl != "" {
+		crawl_domains := parseTXT(crawl)
+		crawl_results := make(chan string, len(crawl_domains))
+		var crawlsPerThread = len(crawl_domains) / threads
 		for i := 0; i < threads; i++ {
 			wg.Add(1)
 			start := i * crawlsPerThread
@@ -125,7 +121,7 @@ func main() {
 	
 			go detectInput(domains[start:end], crawl_results, &wg)
 		}
-
+	
 
 	go func() {
 		wg.Wait()

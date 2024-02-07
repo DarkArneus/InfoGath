@@ -9,7 +9,7 @@ import (
 func parseTXT(domains string) []string {
 	file, err := os.Open(domains)
 	if err != nil {
-		fmt.Println("Error al abrir el archivo:", err)
+		fmt.Println("Error opening file:", err)
 		return nil
 	}
 	defer file.Close()
