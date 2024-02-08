@@ -26,8 +26,9 @@ go build -o InfoGath *.go
 
 ### Default Example
 
+Uses 1 thread and default output file is: active_subdomains whereas default input for crawl is active_subdomains.
 ```golang
-./InfoGath -file urls.txt -o -c
+./InfoGath -file urls.txt -c -o
 ```
 
 ### Custom Example
