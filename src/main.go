@@ -57,12 +57,6 @@ func main() {
 
 	results := make(chan string, len(domains))
 
-
-	if threads == 1 {
-		fmt.Println("Using default number of threads: len(domains) / 2")
-		threads = len(domains) / 2
-	}
-
 	var domainsPerThread = len(domains) / threads // how many iterations x goroutine must be made
 
 	// Inicia workers
