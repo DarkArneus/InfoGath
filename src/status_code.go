@@ -13,7 +13,7 @@ func statusCode(domains []string, results chan<- string, wg *sync.WaitGroup) {
 	for _, domain := range domains {
 		resp, err := http.Get("http://" + domain)
 		if err != nil {
-			results <- fmt.Sprintf("%s: %s", color.RedString(domain), color.RedString("Error - "+err.Error()))
+			results <- fmt.Sprintf("%s: %s", domain, color.RedString("Error - "+err.Error()))
 		} else {
 			statusColor := color.GreenString // Por defecto, el color es verde
 			switch resp.StatusCode {
@@ -25,7 +25,7 @@ func statusCode(domains []string, results chan<- string, wg *sync.WaitGroup) {
 				statusColor = color.RedString
 			}
 			
-			results <- fmt.Sprintf("%s: Status - [%s]", color.CyanString(domain), statusColor(fmt.Sprintf("%s", resp.Status)))
+			results <- fmt.Sprintf("%s: Status - [%s]", domain, statusColor(fmt.Sprintf("%s", resp.Status)))
 			resp.Body.Close()
 		}
 	}
