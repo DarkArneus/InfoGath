@@ -38,12 +38,12 @@ func parseCrawlTXT(domains string) []string {
         domain := scanner.Text()
         colonIndex := strings.Index(domain, ":")
         if colonIndex != -1 {
-            domain = domain[:colonIndex] // Corregido aquí
+            domain = domain[:colonIndex]
             domain = strings.TrimSpace(domain)
-            array_domain = append(array_domain, domain) // Agregado aquí
+            array_domain = append(array_domain, domain) 
         } else {
             fmt.Println(": Not found")
         }
     }
-    return array_domain // Agregado aquí
+    return array_domain 
 }
