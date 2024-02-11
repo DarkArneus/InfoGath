@@ -165,9 +165,9 @@ func main() {
 				close(crawl_results)
 				}()
 				
-			for detect_result := range crawl_results {
+			for crawl_result := range crawl_results {
 				mu.Lock() // Acquire the lock before writing
-				_, errc := outputCrawlFile.WriteString(detect_result + "\n")
+				_, errc := outputCrawlFile.WriteString(crawl_result + "\n")
 				mu.Unlock() // Release the lock after writing
 				if errc != nil {
 					fmt.Println("Error writing to output file:", err)
