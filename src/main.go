@@ -106,7 +106,7 @@ func main() {
 	}
 
 	if detect != "" {
-		outputDetectFile, err := os.Create("crawl.txt")
+		outputDetectFile, err := os.Create("detect.txt")
 		defer outputDetectFile.Close()
 		detect_domains := parseDetectTXT(detect)
 		detect_results := make(chan string, len(detect_domains))
@@ -129,21 +129,57 @@ func main() {
 			close(detect_results)
 			}()
 			
-			if detect != ""{
-				for detect_result := range detect_results {
-					mu.Lock() // Acquire the lock before writing
-					_, errc := outputDetectFile.WriteString(detect_result + "\n")
-					mu.Unlock() // Release the lock after writing
-					if errc != nil {
-						fmt.Println("Error writing to output file:", err)
-					}
+		for detect_result := range detect_results {
+			mu.Lock() // Acquire the lock before writing
+			_, errc := outputDetectFile.WriteString(detect_result + "\n")
+			mu.Unlock() // Release the lock after writing
+			if errc != nil {
+				fmt.Println("Error writing to output file:", err)
+				
+			}
+		}
+	}
+
+		// crawler
+		if crawl != "" {
+			outputCrawlFile, err := os.Create("crawl.txt")
+			defer outputCrawlFile.Close()
+			crawl_domains := parseDetectTXT(crawl)
+			crawl_results := make(chan string, len(crawl_domains))
+			var crawlPerThread = len(crawl_domains) / threads
+			for i := 0; i < threads; i++ {
+				wg.Add(1)
+				start := i * crawlPerThread
+				end := (i + 1) * crawlPerThread
+		
+				// For the last goroutine, include any remaining domains
+				if i == threads-1 {
+					end = len(crawl_domains)
+				}
+		
+				go visitAnchor(crawl_domains[start:end], depth, crawl_results, &wg)
+			}
+			
+			go func() {
+				wg.Wait()
+				close(crawl_results)
+				}()
+				
+			for detect_result := range crawl_results {
+				mu.Lock() // Acquire the lock before writing
+				_, errc := outputCrawlFile.WriteString(detect_result + "\n")
+				mu.Unlock() // Release the lock after writing
+				if errc != nil {
+					fmt.Println("Error writing to output file:", err)
+					
 				}
 			}
+		}
 	
+
 	// Calculate and print the runtime
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
 	fmt.Println("Total runtime:", elapsedTime)
 
-	}
 }
