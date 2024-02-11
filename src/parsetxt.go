@@ -24,7 +24,7 @@ func parseTXT(domains string) []string {
 	return array_domain
 }
 
-func parseCrawlTXT(domains string) []string {
+func parseDetectTXT(domains string) []string {
     file, err := os.Open(domains)
     if err != nil {
         fmt.Println("Error opening file:", err)

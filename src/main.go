@@ -21,6 +21,8 @@ func init() {
 			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
 			"  -o, --output <file>	   Indicate the name of the output file",
 			"  -c, --crawl	<file>	   Indicate to detect inputs as forms or labels\n",
+			"  -d, --detect <file>     Visit all anchors given in the input file",
+			"  --depth <int>		Indicate depth for the crawl",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}
@@ -43,8 +45,15 @@ func main() {
 	flag.StringVar(&output, "o", "active_subdomains", "Specify the file containing URLs to fetch (shorthand)")
 
 	var crawl string
-	flag.StringVar(&crawl, "crawl", "", "Indicate whether to detect inputs as forms or input labels")
-	flag.StringVar(&crawl, "c", "", "Indicate whether to detect inputs as forms or input labels (shorthand)")
+	flag.StringVar(&crawl, "crawl", "", "Specificate a depth and crawl the subdomains given")
+	flag.StringVar(&crawl, "c", "", "Specificate a depth and crawl the subdomains given (shorthand)")
+
+	var depth int
+	flag.IntVar(&depth, "depth", 0, "Indicate the depth for the crawler")
+
+	var detect string
+	flag.StringVar(&detect, "detect", "", "Indicate whether to detect inputs as forms or input labels")
+	flag.StringVar(&detect, "d", "", "Indicate whether to detect inputs as forms or input labels (shorthand)")
 
 	flag.Parse()
 
@@ -96,34 +105,34 @@ func main() {
 		}
 	}
 
-	if crawl != "" {
-		outputCrawlFile, err := os.Create("crawl.txt")
-		defer outputCrawlFile.Close()
-		crawl_domains := parseCrawlTXT(crawl)
-		crawl_results := make(chan string, len(crawl_domains))
-		var crawlsPerThread = len(crawl_domains) / threads
+	if detect != "" {
+		outputDetectFile, err := os.Create("crawl.txt")
+		defer outputDetectFile.Close()
+		detect_domains := parseDetectTXT(detect)
+		detect_results := make(chan string, len(detect_domains))
+		var detectsPerThread = len(detect_domains) / threads
 		for i := 0; i < threads; i++ {
 			wg.Add(1)
-			start := i * crawlsPerThread
-			end := (i + 1) * crawlsPerThread
+			start := i * detectsPerThread
+			end := (i + 1) * detectsPerThread
 	
 			// For the last goroutine, include any remaining domains
 			if i == threads-1 {
-				end = len(crawl_domains)
+				end = len(detect_domains)
 			}
 	
-			go detectInput(crawl_domains[start:end], crawl_results, &wg)
+			go detectInput(detect_domains[start:end], detect_results, &wg)
 		}
 		
 		go func() {
 			wg.Wait()
-			close(crawl_results)
+			close(detect_results)
 			}()
 			
-			if crawl != ""{
-				for crawl_result := range crawl_results {
+			if detect != ""{
+				for detect_result := range detect_results {
 					mu.Lock() // Acquire the lock before writing
-					_, errc := outputCrawlFile.WriteString(crawl_result + "\n")
+					_, errc := outputDetectFile.WriteString(detect_result + "\n")
 					mu.Unlock() // Release the lock after writing
 					if errc != nil {
 						fmt.Println("Error writing to output file:", err)
