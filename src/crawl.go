@@ -20,10 +20,9 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		nextlink:= e.Request.AbsoluteURL(e.Attr("href"))
-		results <-fmt.Sprintf("Visiting: %s that comes from: %s", color.YellowString(nextlink), e.Request.URL.Host)
+		results <-fmt.Sprintf("Visiting: %s that comes from: %s", color.YellowString(nextlink), e.Request.URL.String())
 		e.Request.Visit(nextlink)
 	})	
-
 
 	c.Limit(&colly.LimitRule{
 		Parallelism: 2,
@@ -31,10 +30,6 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 	})
 
 	for _, domain := range domains {
-	
-		//c.OnResponse(func(r *colly.Response) {
-		//	fmt.Println(string(r.Body))
-		//})
 		if stop != true{
 			err := c.Visit("http://" + domain)
 			if err != nil {
