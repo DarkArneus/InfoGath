@@ -7,21 +7,24 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/common-nighthawk/go-figure"
 )
 
 var mu sync.Mutex
 
 func init() {
+	myFigure := figure.NewFigure("InfoGath", "", true)
+	myFigure.Print()
 	flag.Usage = func() {
 		h := []string{
-			"InfoGath. Gather all the information as fast as possible.",
+			"\n\tGather all the information as fast as possible.",
 			"",
 			"Options:",
-			"  -f, --file <file>     Specify the URLs to fetch",
+			"  -f, --file <input file>     Specify the URLs to fetch and return the status code",
 			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
-			"  -o, --output <file>	   Indicate the name of the output file",
-			"  -c, --crawl	<file>	   Indicate to detect inputs as forms or labels\n",
-			"  -d, --detect <file>     Visit all anchors given in the input file",
+			"  -o, --output <output file>	   Indicate the name of the output file",
+			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels\n",
+			"  -d, --detect <input file>     Visit all anchors given in the input file",
 			"  --depth <int>		Indicate depth for the crawl",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
