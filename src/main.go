@@ -17,15 +17,15 @@ func init() {
 	myFigure.Print()
 	flag.Usage = func() {
 		h := []string{
-			"\n\tGather all the information as fast as possible.",
+			"\tGather all the information as fast as possible.",
 			"",
 			"Options:",
-			"  -f, --file <input file>     Specify the URLs to fetch and return the status code",
-			"  -t, --threads <int>      Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
+			"  -f, --file <input file>          Specify the URLs to fetch and return the status code",
+			"  -t, --threads <int>              Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
 			"  -o, --output <output file>	   Indicate the name of the output file",
-			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels\n",
-			"  -d, --detect <input file>     Visit all anchors given in the input file",
-			"  --depth <int>		Indicate depth for the crawl",
+			"  -d, --detect <input file>        Visit all anchors given in the input file",
+			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels",
+			"       --depth <int>		   Indicate depth for the crawl",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}

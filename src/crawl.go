@@ -12,7 +12,8 @@ import (
 
 func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync.WaitGroup){
 	defer wg.Done()
-	visited := make(map[string]bool)
+	next_visit := make(map[string]bool)
+	previousNode := make(map[string][]string)
 	c := colly.NewCollector(
 		colly.MaxDepth(maxDepth), 
 		//colly.Async(true),
@@ -22,9 +23,12 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		nextlink:= e.Request.AbsoluteURL(e.Attr("href"))
-		if !visited[nextlink] && nextlink != ""{
+		if !next_visit[nextlink] && nextlink != "" && !contains(previousNode[nextlink], e.Request.URL.String()){
 			// Mark as visited
-			visited[nextlink] = true
+			next_visit[nextlink] = true
+			// Add the current node to the previous nodes
+			previousNode[nextlink] = append(previousNode[nextlink], e.Request.URL.String())
+			// Write in the results channel
 			fmt.Printf("Visiting: %s that comes from: [%s]\n", color.YellowString(nextlink), color.CyanString(e.Request.URL.String()))
 			results <- fmt.Sprintf("Visiting: %s that comes from: [%s]", color.YellowString(nextlink), color.CyanString(e.Request.URL.String()))
 			e.Request.Visit(nextlink)
@@ -49,5 +53,14 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 }
 
 func crawlDetect(domains []string, results chan<- string, wg *sync.WaitGroup){
+	
+}
 
+func contains(slice []string, value string) bool{
+	for _, item := range slice {
+		if item == value {
+			return true
+		}
+	}
+	return false
 }
