@@ -7,7 +7,7 @@ import (
 	
 	"github.com/fatih/color"
 	"github.com/gocolly/colly/v2"
-	//"github.com/gocolly/colly/v2/debug"
+	//"github.com/gocolly/colly/v2/debug" for debugging
 )
 
 func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync.WaitGroup){
