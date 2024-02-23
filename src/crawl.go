@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gocolly/colly/v2"
+	"github.com/gocolly/colly/v2/extensions"
 	//"github.com/gocolly/colly/v2/debug" for debugging
 )
 
@@ -14,12 +15,14 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 	defer wg.Done()
 	next_visit := make(map[string]bool)
 	previousNode := make(map[string][]string)
+
 	c := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
-		//colly.Async(true),
+		colly.AllowURLRevisit(),
 		//colly.Debugger(&debug.LogDebugger{}),
 	)
 	stop := false
+	extensions.RandomUserAgent(c)
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		nextlink := e.Request.AbsoluteURL(e.Attr("href"))
@@ -29,14 +32,12 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 			// Add the current node to the previous nodes
 			previousNode[nextlink] = append(previousNode[nextlink], e.Request.URL.String())
 			// Write in the results channel
-			//fmt.Printf("Visiting: %s that comes from: [%s]\n", color.YellowString(nextlink), color.CyanString(e.Request.URL.String()))
 			results <- fmt.Sprintf("Visiting: %s that comes from: [%s]", color.YellowString(nextlink), color.CyanString(e.Request.URL.String()))
 			e.Request.Visit(nextlink)
 		}
 	})
 
 	c.Limit(&colly.LimitRule{
-		//Parallelism: 2,
 		RandomDelay: 5 * time.Second,
 	})
 
@@ -49,7 +50,6 @@ func visitAnchor(domains []string, maxDepth int, results chan<- string, wg *sync
 		}
 
 	}
-	//c.Wait()
 }
 
 func crawlDetect(domains []string, results chan<- string, wg *sync.WaitGroup, maxDepth int) {
@@ -58,7 +58,6 @@ func crawlDetect(domains []string, results chan<- string, wg *sync.WaitGroup, ma
 	previousNode := make(map[string][]string)
 	c := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
-		//colly.Async(true),
 		//colly.Debugger(&debug.LogDebugger{}),
 	)
 	stop := false
@@ -77,7 +76,6 @@ func crawlDetect(domains []string, results chan<- string, wg *sync.WaitGroup, ma
 	})
 
 	c.Limit(&colly.LimitRule{
-		//Parallelism: 2,
 		RandomDelay: 5 * time.Second,
 	})
 
