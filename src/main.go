@@ -23,8 +23,8 @@ func init() {
 			"  -f, --file <input file>          Specify the URLs to fetch and return the status code",
 			"  -t, --threads <int>              Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
 			"  -o, --output <output file>	   Indicate the name of the output file",
-			"  -d, --detect <input file>        Visit all anchors given in the input file",
-			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels",
+			"  -d, --detect <input file>        Indicate to detect inputs as forms or labels",
+			"  -c, --crawl	<input file>	   Visit all anchors given in the input file",
 			"       --depth <int>		   Indicate depth for the crawl",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
