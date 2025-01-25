@@ -3,10 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
 	"github.com/common-nighthawk/go-figure"
 )
 
@@ -23,8 +25,8 @@ func init() {
 			"  -f, --file <input file>          Specify the URLs to fetch and return the status code",
 			"  -t, --threads <int>              Indicate the number of threads you want to use. Number of threads must be lower than number of domains!",
 			"  -o, --output <output file>	   Indicate the name of the output file",
-			"  -d, --detect <input file>        Indicate to detect inputs as forms or labels",
-			"  -c, --crawl	<input file>	   Visit all anchors given in the input file",
+			"  -d, --detect <input file>        Visit all anchors given in the input file",
+			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels",
 			"       --depth <int>		   Indicate depth for the crawl",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
@@ -90,6 +92,9 @@ func main() {
 
 	// Create a file to write active subdomains
 	outputFile, err := os.Create(output)
+	if err != nil {
+		log.Fatalf("Error creating output file: %v", err)
+	}
 	defer outputFile.Close()
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
@@ -110,6 +115,9 @@ func main() {
 
 	if detect != "" {
 		outputDetectFile, err := os.Create("detect.txt")
+		if err != nil {
+			log.Fatalf("Error creating output file: %v", err)
+		}
 		defer outputDetectFile.Close()
 		detect_domains := parseDetectTXT(detect)
 		detect_results := make(chan string, len(detect_domains))
@@ -118,67 +126,69 @@ func main() {
 			wg.Add(1)
 			start := i * detectsPerThread
 			end := (i + 1) * detectsPerThread
-	
+
 			// For the last goroutine, include any remaining domains
 			if i == threads-1 {
 				end = len(detect_domains)
 			}
-	
+
 			go detectInput(detect_domains[start:end], detect_results, &wg)
 		}
-		
+		// Anonymous goroutine designed to wait for closing the channel
 		go func() {
 			wg.Wait()
 			close(detect_results)
-			}()
-			
+		}()
+
 		for detect_result := range detect_results {
 			mu.Lock() // Acquire the lock before writing
 			_, errc := outputDetectFile.WriteString(detect_result + "\n")
 			mu.Unlock() // Release the lock after writing
 			if errc != nil {
 				fmt.Println("Error writing to output file:", err)
-				
+
 			}
 		}
 	}
 
-		// crawler
-		if crawl != "" {
-			outputCrawlFile, err := os.Create("crawl.txt")
-			defer outputCrawlFile.Close()
-			crawl_domains := parseDetectTXT(crawl)
-			crawl_results := make(chan string, len(crawl_domains))
-			var crawlPerThread = len(crawl_domains) / threads
-			for i := 0; i < threads; i++ {
-				wg.Add(1)
-				start := i * crawlPerThread
-				end := (i + 1) * crawlPerThread
-		
-				// For the last goroutine, include any remaining domains
-				if i == threads-1 {
-					end = len(crawl_domains)
-				}
-		
-				go visitAnchor(crawl_domains[start:end], depth, crawl_results, &wg)
+	// crawler
+	if crawl != "" {
+		outputCrawlFile, err := os.Create("crawl.txt")
+		if err != nil {
+			log.Fatalf("Error creating output file: %v", err)
+		}
+		defer outputCrawlFile.Close()
+		crawl_domains := parseDetectTXT(crawl)
+		crawl_results := make(chan string, len(crawl_domains))
+		var crawlPerThread = len(crawl_domains) / threads
+		for i := 0; i < threads; i++ {
+			wg.Add(1)
+			start := i * crawlPerThread
+			end := (i + 1) * crawlPerThread
+
+			// For the last goroutine, include any remaining domains
+			if i == threads-1 {
+				end = len(crawl_domains)
 			}
-			
-			go func() {
-				wg.Wait()
-				close(crawl_results)
-				}()
-				
-			for crawl_result := range crawl_results {
-				mu.Lock() // Acquire the lock before writing
-				_, errc := outputCrawlFile.WriteString(crawl_result + "\n")
-				mu.Unlock() // Release the lock after writing
-				if errc != nil {
-					fmt.Println("Error writing to output file:", err)
-					
-				}
+
+			go visitAnchor(crawl_domains[start:end], depth, crawl_results, &wg)
+		}
+
+		go func() {
+			wg.Wait()
+			close(crawl_results)
+		}()
+
+		for crawl_result := range crawl_results {
+			mu.Lock() // Acquire the lock before writing
+			_, errc := outputCrawlFile.WriteString(crawl_result + "\n")
+			mu.Unlock() // Release the lock after writing
+			if errc != nil {
+				fmt.Println("Error writing to output file:", err)
+
 			}
 		}
-	
+	}
 
 	// Calculate and print the runtime
 	endTime := time.Now()
