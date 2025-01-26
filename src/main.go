@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
 	"github.com/common-nighthawk/go-figure"
 )
 
@@ -27,7 +26,7 @@ func init() {
 			"  -o, --output <output file>	   Indicate the name of the output file",
 			"  -d, --detect <input file>        Visit all anchors given in the input file",
 			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels",
-			"       --depth <int>		   Indicate depth for the crawl",
+			"       --depth <int>		   Indicate depth for the crawl\n",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}

@@ -21,7 +21,7 @@ func statusCode(domains []string, results chan<- string, wg *sync.WaitGroup) {
             continue
         }
 
-        statusColor := color.GreenString // Por defecto, el color es verde
+        statusColor := color.GreenString // Default green
         switch resp.StatusCode {
         case 404:
             statusColor = color.RedString
@@ -31,14 +31,22 @@ func statusCode(domains []string, results chan<- string, wg *sync.WaitGroup) {
             statusColor = color.RedString
         }
 
-        // Leer el título de la página
+        // Read page title
         title, err := getPageTitle(resp.Body)
+        cache := detectCache(resp)
         resp.Body.Close()
 
-        if err != nil {
-            results <- fmt.Sprintf("%s: Status - [%s], Error getting title", domain, statusColor(fmt.Sprintf("%s", resp.Status)))
+        var cacheString string
+        if cache {
+            cacheString = color.GreenString("Yes") // Cache found
         } else {
-            results <- fmt.Sprintf("%s: Status - [%s] [%s]", domain, statusColor(fmt.Sprintf("%s", resp.Status)), color.MagentaString(title))
+            cacheString = color.RedString("No") // No cache
+        }
+
+        if err != nil {
+            results <- fmt.Sprintf("%s: Status - [%s], Error getting title. Cache - [%s]", domain, statusColor(fmt.Sprintf("%s", resp.Status)), cacheString)
+        } else {
+            results <- fmt.Sprintf("%s: Status - [%s] [%s] Cache - [%s]", domain, statusColor(fmt.Sprintf("%s", resp.Status)), color.MagentaString(title), cacheString)
         }
     }
 }
@@ -67,4 +75,21 @@ func findTitleNode(n *html.Node) *html.Node {
         }
     }
     return nil
+}
+
+func detectCache(resp *http.Response) bool{
+    if resp == nil{
+        return false
+    }
+
+    cacheControl := resp.Header.Get("Cache-Control")
+    expires := resp.Header.Get("Expires")
+    eTag := resp.Header.Get("ETag")
+
+    if cacheControl != "" || expires != "" || eTag != "" {
+        return true
+    }
+
+    return false
+
 }
