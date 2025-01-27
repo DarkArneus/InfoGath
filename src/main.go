@@ -26,7 +26,8 @@ func init() {
 			"  -o, --output <output file>	   Indicate the name of the output file",
 			"  -d, --detect <input file>        Visit all anchors given in the input file",
 			"  -c, --crawl	<input file>	   Indicate to detect inputs as forms or labels",
-			"       --depth <int>		   Indicate depth for the crawl\n",
+			"       --depth <int>		   Indicate depth for the crawl",
+			"  -dw, --downgrade		   Check if we can downgrade to HTTP1.1\n",
 		}
 		fmt.Fprintf(os.Stderr, strings.Join(h, "\n"))
 	}
@@ -58,6 +59,10 @@ func main() {
 	var detect string
 	flag.StringVar(&detect, "detect", "", "Indicate whether to detect inputs as forms or input labels")
 	flag.StringVar(&detect, "d", "", "Indicate whether to detect inputs as forms or input labels (shorthand)")
+
+	var downgrade string
+	flag.StringVar(&downgrade, "downgrade", "", "Check if we can downgrade to HTTP/1.1")
+	flag.StringVar(&downgrade, "dw", "", "Check if we can downgrade to HTTP/1.1 (shorthand)")
 
 	flag.Parse()
 
@@ -185,6 +190,47 @@ func main() {
 			if errc != nil {
 				fmt.Println("Error writing to output file:", err)
 
+			}
+		}
+	}
+
+	if downgrade != "" {
+		outputDowngrades, err := os.Create("downgrades.txt")
+		if err != nil {
+			log.Fatalf("Error creating output file: %v", err)
+		}
+		defer outputDowngrades.Close()
+	
+		// Parsear los dominios y dividirlos por hilos
+		downgradeDomains := parseTXT(downgrade)
+		downgradeResults := make(chan string, len(downgradeDomains))
+		downgradePerThread := len(downgradeDomains) / threads
+	
+		for i := 0; i < threads; i++ {
+			wg.Add(1)
+			start := i * downgradePerThread
+			end := (i + 1) * downgradePerThread
+	
+			// Incluir los dominios restantes en el último hilo
+			if i == threads-1 {
+				end = len(downgradeDomains)
+			}
+	
+			go detectHttpDowngrades(downgradeDomains[start:end], downgradeResults, &wg)
+		}
+	
+		go func() {
+			wg.Wait()
+			close(downgradeResults)
+		}()
+	
+		// Escribir los resultados en el archivo de salida
+		for downgradeResult := range downgradeResults {
+			mu.Lock() // Adquirir el lock antes de escribir
+			_, errc := outputDowngrades.WriteString(downgradeResult + "\n")
+			mu.Unlock() // Liberar el lock después de escribir
+			if errc != nil {
+				fmt.Println("Error writing to output file:", err)
 			}
 		}
 	}

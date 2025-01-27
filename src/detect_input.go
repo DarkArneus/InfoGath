@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"sync"
-	
 	"github.com/fatih/color"
 	"github.com/gocolly/colly/v2"
 )
