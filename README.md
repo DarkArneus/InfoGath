@@ -21,6 +21,7 @@ go build -o InfoGath *.go
 - threads, -t <int>: Indicate the number of threads you want to use.
 - output, -o <file>: Indicate the name of the output file.
 - crawl, -c <file>: Indicate whether to detect inputs as forms or input labels.
+- downgrade, -dw <file>:		   Check if we can downgrade to HTTP1.1
 
 ## Example
 
