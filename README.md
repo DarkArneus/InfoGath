@@ -13,7 +13,7 @@ go build -o InfoGath *.go
 ## Usage
 
 ```golang
-./InfoGath --file <file> [-f <file>] --threads <int> [-t <int>] --output <file> [-o <file>] --crawl <file> [-c <file>]
+./InfoGath --file <file> [-f <file>] --threads <int> [-t <int>] --output <file> [-o <file>] --crawl <file> [-c <file>] --downgrade [-dw <file>]
 ```
 
 ## Flags
