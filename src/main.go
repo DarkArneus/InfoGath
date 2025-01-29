@@ -46,15 +46,15 @@ func main() {
 	flag.IntVar(&threads, "t", 1, "Indicate the number of threads you want to use (shorthand)")
 
 	var output string
-	flag.StringVar(&output, "output", "active_subdomains", "Indicate the name of the output file")
-	flag.StringVar(&output, "o", "active_subdomains", "Specify the file containing URLs to fetch (shorthand)")
+	flag.StringVar(&output, "output", "active_subdomains.txt", "Indicate the name of the output file")
+	flag.StringVar(&output, "o", "active_subdomains.txt", "Specify the file containing URLs to fetch (shorthand)")
 
 	var crawl string
-	flag.StringVar(&crawl, "crawl", "", "Specificate a depth and crawl the subdomains given")
-	flag.StringVar(&crawl, "c", "", "Specificate a depth and crawl the subdomains given (shorthand)")
+	flag.StringVar(&crawl, "crawl", "active_subdomains.txt", "Specificate a depth and crawl the subdomains given")
+	flag.StringVar(&crawl, "c", "active_subdomains.txt", "Specificate a depth and crawl the subdomains given (shorthand)")
 
 	var depth int
-	flag.IntVar(&depth, "depth", 0, "Indicate the depth for the crawler")
+	flag.IntVar(&depth, "depth", 2, "Indicate the depth for the crawler")
 
 	var detect string
 	flag.StringVar(&detect, "detect", "", "Indicate whether to detect inputs as forms or input labels")

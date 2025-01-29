@@ -3,3 +3,6 @@ src/InfoGath
 src/results.txt
 src/subdomains.txt
 src/downgrades.txt
+src/active_subdomains.txt
+src/crawl.txt
+src/detect.txt
