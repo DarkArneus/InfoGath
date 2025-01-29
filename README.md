@@ -13,7 +13,7 @@ go build -o InfoGath *.go
 ## Usage
 
 ```golang
-./InfoGath --file <file> [-f <file>] --threads <int> [-t <int>] --output <file> [-o <file>] --crawl <file> [-c <file>]
+./InfoGath --file <file> [-f <file>] --threads <int> [-t <int>] --output <file> [-o <file>] --crawl <file> [-c <file>] --downgrade [-dw <file>]
 ```
 
 ## Flags
@@ -21,23 +21,24 @@ go build -o InfoGath *.go
 - threads, -t <int>: Indicate the number of threads you want to use.
 - output, -o <file>: Indicate the name of the output file.
 - crawl, -c <file>: Indicate whether to detect inputs as forms or input labels.
+- downgrade, -dw <file>:		   Check if we can downgrade to HTTP1.1
 
 ## Example
 
 ### Default Example
 
-Uses 1 thread and default output file is: active_subdomains whereas default input for crawl is active_subdomains.
+Uses 1 thread and default output file is: active_subdomains.
 ```golang
-./InfoGath -file urls.txt -c -o
+./InfoGath -f subdomains.txt -d -o
 ```
 
 ### Custom Example
 
 ```golang
-./InfoGath -file urls.txt --threads 4 --output results.txt --crawl results.txt
+./InfoGath -file subdomains.txt --threads 4 --output results.txt --crawl results.txt -dw subdomains.txt
 ```
 
 ## Notes
 
 The tool compiles by running go build *.go in the src directory.
-Replace urls.txt, results.txt, and crawl.txt with the actual file paths containing URLs, output, and crawl data, respectively.
+Replace subdomains.txt, results.txt, and crawl.txt with the actual file paths containing URLs, output, and crawl data, respectively.
